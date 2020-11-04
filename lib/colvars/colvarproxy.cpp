@@ -30,6 +30,8 @@
 colvarproxy_system::colvarproxy_system()
 {
   angstrom_value = 0.0;
+  kcal_mol_value = 0.0;
+  boundaries_type = boundaries_unsupported;
   total_force_requested = false;
   reset_pbc_lattice();
 }
@@ -464,6 +466,8 @@ int colvarproxy_smp::smp_unlock()
 colvarproxy_script::colvarproxy_script()
 {
   script = NULL;
+  force_script_defined = false;
+  have_scripts = false;
 }
 
 
@@ -512,6 +516,7 @@ int colvarproxy_script::run_colvar_gradient_callback(std::string const & /* name
 colvarproxy_io::colvarproxy_io()
 {
   input_buffer_ = NULL;
+  restart_frequency_engine = 0;
 }
 
 

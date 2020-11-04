@@ -96,7 +96,7 @@ int colvar::init(std::string const &conf)
     "", colvarparse::parse_silent)) {
 
     enable(f_cv_scripted);
-    cvm::log("This colvar uses scripted function \"" + scripted_function + "\".");
+    cvm::log("This colvar uses scripted function \"" + scripted_function + "\".\n");
 
     std::string type_str;
     get_keyval(conf, "scriptedFunctionType", type_str, "scalar");
@@ -134,7 +134,7 @@ int colvar::init(std::string const &conf)
     std::sort(cvcs.begin(), cvcs.end(), compare);
 
     if(cvcs.size() > 1) {
-      cvm::log("Sorted list of components for this scripted colvar:");
+      cvm::log("Sorted list of components for this scripted colvar:\n");
       for (i = 0; i < cvcs.size(); i++) {
         cvm::log(cvm::to_str(i+1) + " " + cvcs[i]->name);
       }
@@ -654,7 +654,7 @@ int colvar::init_extended_Lagrangian(std::string const &conf)
       return INPUT_ERROR;
     }
     ext_force_k = cvm::boltzmann() * temp / (tolerance * tolerance);
-    cvm::log("Computed extended system force constant: " + cvm::to_str(ext_force_k) + " [E]/U^2");
+    cvm::log("Computed extended system force constant: " + cvm::to_str(ext_force_k) + " [E]/U^2\n");
 
     get_keyval(conf, "extendedTimeConstant", extended_period, 200.0);
     if (extended_period <= 0.0) {
@@ -662,7 +662,7 @@ int colvar::init_extended_Lagrangian(std::string const &conf)
     }
     ext_mass = (cvm::boltzmann() * temp * extended_period * extended_period)
       / (4.0 * PI * PI * tolerance * tolerance);
-    cvm::log("Computed fictitious mass: " + cvm::to_str(ext_mass) + " [E]/(U/fs)^2   (U: colvar unit)");
+    cvm::log("Computed fictitious mass: " + cvm::to_str(ext_mass) + " [E]/(U/fs)^2   (U: colvar unit)\n");
 
     {
       bool b_output_energy;
@@ -1074,6 +1074,7 @@ int colvar::init_dependencies() {
 
     init_feature(f_cv_hide_Jacobian, "hide_Jacobian_force", f_type_user);
     require_feature_self(f_cv_hide_Jacobian, f_cv_Jacobian); // can only hide if calculated
+    exclude_feature_self(f_cv_hide_Jacobian, f_cv_extended_Lagrangian);
 
     init_feature(f_cv_extended_Lagrangian, "extended_Lagrangian", f_type_user);
     require_feature_self(f_cv_extended_Lagrangian, f_cv_scalar);
@@ -1192,6 +1193,21 @@ std::vector<std::vector<int> > colvar::get_atom_lists()
     lists.insert(lists.end(), li.begin(), li.end());
   }
   return lists;
+}
+
+
+std::vector<int> const &colvar::get_volmap_ids()
+{
+  volmap_ids_.resize(cvcs.size());
+  for (size_t i = 0; i < cvcs.size(); i++) {
+    if (cvcs[i]->param_exists("mapID") == COLVARS_OK) {
+      volmap_ids_[i] =
+        *(reinterpret_cast<int const *>(cvcs[i]->get_param_ptr("mapID")));
+    } else {
+      volmap_ids_[i] = -1;
+    }
+  }
+  return volmap_ids_;
 }
 
 
@@ -1552,9 +1568,11 @@ int colvar::collect_cvc_total_forces()
       }
     }
 
-    if (!is_enabled(f_cv_hide_Jacobian)) {
+    if (!(is_enabled(f_cv_hide_Jacobian) && is_enabled(f_cv_subtract_applied_force))) {
       // add the Jacobian force to the total force, and don't apply any silent
       // correction internally: biases such as colvarbias_abf will handle it
+      // If f_cv_hide_Jacobian is enabled, a force of -fj is present in ft due to the
+      // Jacobian-compensating force
       ft += fj;
     }
   }
@@ -1954,7 +1972,7 @@ int colvar::update_cvc_flags()
 
 int colvar::update_cvc_config(std::vector<std::string> const &confs)
 {
-  cvm::log("Updating configuration for colvar \""+name+"\"");
+  cvm::log("Updating configuration for colvar \""+name+"\"\n");
 
   if (confs.size() != cvcs.size()) {
     return cvm::error("Error: Wrong number of CVC config strings.  "

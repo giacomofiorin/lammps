@@ -1681,11 +1681,20 @@ public:
 
 protected:
 
-  /// Identifier of the map object (as used by the simulation engine)
-  std::string map_name;
+  /// String identifier of the map object (as used by the simulation engine)
+  std::string volmap_name;
+
+  /// Numeric identifier of the map object (as used by the simulation engine)
+  int volmap_id;
 
   /// Index of the map objet in the proxy arrays
   int volmap_index;
+
+  /// Group of atoms selected internally (optional)
+  cvm::atom_group *atoms;
+
+  /// Weights assigned to each atom (default: uniform weights)
+  std::vector<cvm::real> atom_weights;
 };
 
 
