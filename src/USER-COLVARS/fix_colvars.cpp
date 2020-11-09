@@ -9,7 +9,7 @@
 
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   http://lammps.sandia.gov, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -404,7 +404,7 @@ void FixColvars::init()
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use fix colvars without atom IDs");
 
-  if (atom->map_style == Atom::MAP_NONE)
+  if (atom->map_style == 0)
     error->all(FLERR,"Fix colvars requires an atom map, see atom_modify");
 
   if ((me == 0) && (update->whichflag == 2))
